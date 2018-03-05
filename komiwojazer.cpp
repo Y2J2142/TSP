@@ -57,7 +57,7 @@ float always_shortest(std::vector<City>& cities)
 {
     if(cities.size() <= 1)
         return 0.f;
-    if(cities.size() < 2)
+    if(cities.size() <= 2)
     {
         //std::cout << distance(cities[0], cities[1]) << '\n';
         return distance(cities[0], cities[1]);
@@ -86,6 +86,30 @@ float always_shortest(std::vector<City>& cities)
     return shortest_path + always_shortest(rest);
 }
 
+float random_path(std::vector<City> cities)
+{
+    std::random_device rd;
+    std::mt19937_64 rng(rd());
+    
+
+    if(cities.size() <= 1)
+        return 0.f;
+    if(cities.size() <= 2)
+        return distance(cities[0], cities[1]);
+
+    auto start = cities[0];
+    
+    std::vector<City> rest(cities.begin() + 1, cities.end());
+    std::uniform_real_distribution<float> range(0, rest.size()-1);
+    int next_city = range(rd);
+    float path = distance(start, rest[next_city]);
+
+
+    std::swap(rest[0], rest[next_city]);
+    
+    return path + random_path(rest);
+}
+
  
 
 
@@ -104,7 +128,7 @@ int main(int argc, char* argv[])
     std::vector<City> cities(ilosc_miast);
     std::vector<City> cities_bf(cities.size());
     std::vector<City> cities_as(cities.size());
-    
+    std::vector<City> cities_r(cities.size());
     int i = 0;
     for(auto&& m : cities)
     {
@@ -120,17 +144,20 @@ int main(int argc, char* argv[])
 
     std::copy(cities.begin(), cities.end(), cities_bf.begin());
     std::copy(cities.begin(), cities.end(), cities_as.begin());
+    std::copy(cities.begin(), cities.end(), cities_r.begin());
 
-
-    std::vector<float> wyniki = bruteforce(cities_bf);
+    std::vector<float> results_bf = bruteforce(cities_bf);
+    auto result_bf_iter = std::min_element(results_bf.begin(), results_bf.end());
+    int dist = std::distance(results_bf.begin(),result_bf_iter);
+    float result_bf = results_bf[dist];
+    float result_as = always_shortest(cities_as); 
+    float result_r = random_path(cities_r);
     
-    float result_as =always_shortest(cities_as); 
-    
-    std::cout << result_as << "\n\n";
-
-
-    for(auto w : wyniki)
-            std::cout << "wynik : " << w << '\n';
+    std::cout << "Always shortest : " << result_as << "\n";
+    std::cout << "Random path : " << result_r << "\n";
+    std::cout << "Brute force search : " << result_bf << '\n';
+    //for(auto w : results_bf)
+    //        std::cout << "wynik : " << w << '\n';
     
 
     return 0;
